@@ -1,12 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import joblib
 import numpy as np
+import os
 
+# Initialiser FastAPI
 app = FastAPI(title="Hypertension Risk API")
 
-# CORS (obligatoire pour le frontend JS)
+# Middleware CORS pour autoriser le frontend JS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Monter le dossier 'frontend' pour servir HTML/CSS/JS
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
 # Charger modèle et scaler
 model = joblib.load("model.pkl")
@@ -27,6 +34,7 @@ feature_order = [
 
 scaler_features = ['age', 'height', 'weight', 'ap_hi', 'ap_lo', 'BMI']
 
+# Schéma de données pour l'API
 class Patient(BaseModel):
     age: float
     gender: int
@@ -40,9 +48,9 @@ class Patient(BaseModel):
     alco: int
     active: int
 
+# Endpoint de prédiction
 @app.post("/predict")
 def predict(patient: Patient):
-
     height_m = patient.height / 100
     BMI = patient.weight / (height_m ** 2)
 
@@ -54,7 +62,6 @@ def predict(patient: Patient):
 
     X = np.array(data).reshape(1, -1)
     X_scaled = X.copy()
-
     idx = [feature_order.index(f) for f in scaler_features]
     X_scaled[:, idx] = scaler.transform(X[:, idx])
 
@@ -67,3 +74,14 @@ def predict(patient: Patient):
         "diagnostic": "High risk ⚠️" if pred == 1 else "Low risk ✔️",
         "BMI": round(float(BMI), 2)
     }
+
+# Servir la page d'accueil
+@app.get("/")
+def index():
+    return FileResponse("frontend/index.html")
+
+# Lancer le serveur avec le port Render
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
