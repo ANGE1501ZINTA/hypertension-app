@@ -3,3 +3,4 @@ uvicorn
 numpy
 joblib
 scikit-learn
+xgboost
