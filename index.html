@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Hypertension Risk Predictor</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    min-height: 100vh;
+    margin: 0;
+    padding: 30px;
+}
+
+body::before {
+    content: "🫀";
+    font-size: 320px;
+    position: fixed;
+    opacity: 0.04;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+h2 {
+    text-align: center;
+    color: #0d47a1;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 18px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+}
+
+label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+}
+
+input, select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 4px;
+}
+
+button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    background: #0d47a1;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #08306b;
+}
+
+.result {
+    display: none;
+}
+
+.result.low { background: #e8f5e9; }
+.result.high { background: #ffebee; }
+
+.result-box {
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+#advice {
+    margin-top: 15px;
+    background: #f5f5f5;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h2>🫀 Hypertension Risk Prediction</h2>
+
+<div class="container">
+
+<!-- INPUTS -->
+<div class="card">
+<h3>Patient Information</h3>
+
+<input id="age" type="number" placeholder="Age">
+<select id="gender">
+    <option value="0">Female</option>
+    <option value="1">Male</option>
+</select>
+
+<input id="height" type="number" placeholder="Height (cm)">
+<input id="weight" type="number" placeholder="Weight (kg)">
+<input id="ap_hi" type="number" placeholder="Systolic Pressure">
+<input id="ap_lo" type="number" placeholder="Diastolic Pressure">
+
+<select id="cholesterol">
+    <option value="1">Chol Normal</option>
+    <option value="2">Above normal</option>
+    <option value="3">High</option>
+</select>
+
+<select id="gluc">
+    <option value="1">Glucose Normal</option>
+    <option value="2">Above normal</option>
+    <option value="3">High</option>
+</select>
+
+<select id="smoke">
+    <option value="0">Non-smoker</option>
+    <option value="1">Smoker</option>
+</select>
+
+<select id="alco">
+    <option value="0">No alcohol</option>
+    <option value="1">Alcohol</option>
+</select>
+
+<select id="active">
+    <option value="0">Inactive</option>
+    <option value="1">Active</option>
+</select>
+
+<button onclick="predict()">Analyze Risk</button>
+</div>
+
+<!-- RESULTS -->
+<div class="card">
+<h3>Analysis Results</h3>
+
+<div class="result" id="result">
+
+<div class="result-box" id="resultBox">
+    <h3 id="diagnostic"></h3>
+    <p><strong>Hypertension probability:</strong> <span id="prob"></span>%</p>
+    <p><strong>BMI:</strong> <span id="bmi"></span></p>
+</div>
+
+<canvas id="riskChart"></canvas>
+
+<div id="advice"></div>
+
+<h4>📊 Patient History</h4>
+<table>
+<thead>
+<tr><th>Date</th><th>Risk %</th><th>BMI</th><th>Diagnosis</th></tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+
+<p style="font-size:12px;margin-top:10px">
+⚠️ Experimental tool intended for research and educational purposes only.
+</p>
+
+</div>
+</div>
+
+</div>
+
+<script>
+let chart;
+
+function adviceText(prob, bmi, active, smoke) {
+    let tips = [];
+    if (prob > 50) tips.push("Reduce salt intake and monitor blood pressure regularly.");
+    if (bmi >= 25) tips.push("Weight reduction is recommended.");
+    if (active == 0) tips.push("Increase daily physical activity.");
+    if (smoke == 1) tips.push("Smoking cessation is strongly advised.");
+    return tips.join(" ");
+}
+
+function saveHistory(data) {
+    let hist = JSON.parse(localStorage.getItem("history") || "[]");
+    hist.unshift(data);
+    localStorage.setItem("history", JSON.stringify(hist));
+    renderHistory();
+}
+
+function renderHistory() {
+    const hist = JSON.parse(localStorage.getItem("history") || "[]");
+    document.getElementById("history").innerHTML = hist.map(h =>
+        `<tr><td>${h.date}</td><td>${h.prob}%</td><td>${h.bmi}</td><td>${h.diag}</td></tr>`
+    ).join("");
+}
+
+async function predict() {
+    const payload = {
+        age:+age.value, gender:+gender.value, height:+height.value,
+        weight:+weight.value, ap_hi:+ap_hi.value, ap_lo:+ap_lo.value,
+        cholesterol:+cholesterol.value, gluc:+gluc.value,
+        smoke:+smoke.value, alco:+alco.value, active:+active.value
+    };
+
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    const prob = (data.probability * 100).toFixed(1);
+
+    document.getElementById("prob").innerText = prob;
+    document.getElementById("bmi").innerText = data.BMI;
+    document.getElementById("diagnostic").innerText = data.diagnostic;
+    document.getElementById("advice").innerText =
+        adviceText(prob, data.BMI, payload.active, payload.smoke);
+
+    document.getElementById("result").style.display="block";
+
+    saveHistory({
+        date:new Date().toLocaleDateString(),
+        prob, bmi:data.BMI, diag:data.diagnostic
+    });
+
+    if(chart) chart.destroy();
+    chart = new Chart(riskChart,{
+        type:"doughnut",
+        data:{datasets:[{
+            data:[prob,100-prob],
+            backgroundColor:["#c62828","#81c784"]
+        }]}
+    });
+}
+
+renderHistory();
+</script>
+
+</body>
+</html>

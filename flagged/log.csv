@@ -1,0 +1,2 @@
+Âge,"Genre (0 = Femme, 1 = Homme)",Taille (cm),Poids (kg),Pression systolique (ap_hi),Pression diastolique (ap_lo),Cholestérol,Glycémie (gluc),Fumeur ?,Alcool,Actif physiquement ?,Résultats,flag,username,timestamp
+60,1,180,70,100,100,3,3,1,1,1,"{""Probabilit\u00e9 d'hypertension"": ""0.4871"", ""Diagnostic"": ""Profil sain \u2714\ufe0f"", ""BMI calcul\u00e9"": ""21.60""}",,,2025-12-11 09:47:29.411727
