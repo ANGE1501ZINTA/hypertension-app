@@ -72,16 +72,18 @@ button {
     cursor: pointer;
 }
 
-button:hover {
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
     background: #08306b;
 }
 
 .result {
     display: none;
 }
-
-.result.low { background: #e8f5e9; }
-.result.high { background: #ffebee; }
 
 .result-box {
     padding: 15px;
@@ -165,7 +167,7 @@ th, td {
     <option value="1">Active</option>
 </select>
 
-<button onclick="predict()">Analyze Risk</button>
+<button id="btn" onclick="predict()">Analyze Risk</button>
 </div>
 
 <!-- RESULTS -->
@@ -174,7 +176,7 @@ th, td {
 
 <div class="result" id="result">
 
-<div class="result-box" id="resultBox">
+<div class="result-box">
     <h3 id="diagnostic"></h3>
     <p><strong>Hypertension probability:</strong> <span id="prob"></span>%</p>
     <p><strong>BMI:</strong> <span id="bmi"></span></p>
@@ -203,13 +205,14 @@ th, td {
 
 <script>
 let chart;
+const API_URL = "https://hypertension-api-1.onrender.com/predict";
 
 function adviceText(prob, bmi, active, smoke) {
     let tips = [];
     if (prob > 50) tips.push("Reduce salt intake and monitor blood pressure regularly.");
     if (bmi >= 25) tips.push("Weight reduction is recommended.");
-    if (active == 0) tips.push("Increase daily physical activity.");
-    if (smoke == 1) tips.push("Smoking cessation is strongly advised.");
+    if (active === 0) tips.push("Increase daily physical activity.");
+    if (smoke === 1) tips.push("Smoking cessation is strongly advised.");
     return tips.join(" ");
 }
 
@@ -228,6 +231,9 @@ function renderHistory() {
 }
 
 async function predict() {
+    const btn = document.getElementById("btn");
+    btn.disabled = true;
+
     const payload = {
         age:+age.value, gender:+gender.value, height:+height.value,
         weight:+weight.value, ap_hi:+ap_hi.value, ap_lo:+ap_lo.value,
@@ -235,36 +241,48 @@ async function predict() {
         smoke:+smoke.value, alco:+alco.value, active:+active.value
     };
 
-    const res = await fetch("http://127.0.0.1:8000/predict", {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(payload)
-    });
+    try {
+        const res = await fetch(API_URL, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify(payload)
+        });
 
-    const data = await res.json();
-    const prob = (data.probability * 100).toFixed(1);
+        if (!res.ok) throw new Error("API error");
 
-    document.getElementById("prob").innerText = prob;
-    document.getElementById("bmi").innerText = data.BMI;
-    document.getElementById("diagnostic").innerText = data.diagnostic;
-    document.getElementById("advice").innerText =
-        adviceText(prob, data.BMI, payload.active, payload.smoke);
+        const data = await res.json();
+        const prob = Number(data.probability_percent);
 
-    document.getElementById("result").style.display="block";
+        document.getElementById("prob").innerText = prob;
+        document.getElementById("bmi").innerText = data.BMI;
+        document.getElementById("diagnostic").innerText = data.diagnostic;
+        document.getElementById("advice").innerText =
+            adviceText(prob, data.BMI, payload.active, payload.smoke);
 
-    saveHistory({
-        date:new Date().toLocaleDateString(),
-        prob, bmi:data.BMI, diag:data.diagnostic
-    });
+        document.getElementById("result").style.display="block";
 
-    if(chart) chart.destroy();
-    chart = new Chart(riskChart,{
-        type:"doughnut",
-        data:{datasets:[{
-            data:[prob,100-prob],
-            backgroundColor:["#c62828","#81c784"]
-        }]}
-    });
+        saveHistory({
+            date:new Date().toLocaleDateString(),
+            prob, bmi:data.BMI, diag:data.diagnostic
+        });
+
+        if(chart) chart.destroy();
+        chart = new Chart(riskChart,{
+            type:"doughnut",
+            data:{
+                labels:["Risk","Safe"],
+                datasets:[{
+                    data:[prob,100-prob],
+                    backgroundColor:["#c62828","#81c784"]
+                }]
+            }
+        });
+
+    } catch (e) {
+        alert("Unable to contact the API. Please try again later.");
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 renderHistory();
