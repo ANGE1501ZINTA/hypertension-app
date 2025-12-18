@@ -4,31 +4,32 @@
 <meta charset="UTF-8">
 <title>Hypertension Risk Predictor</title>
 
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Montserrat', sans-serif;
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
     min-height: 100vh;
     margin: 0;
     padding: 30px;
 }
 
-body::before {
-    content: "🫀";
-    font-size: 320px;
-    position: fixed;
-    opacity: 0.04;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
+h1 {
+    text-align: center;
+    font-weight: 700;
+    color: #0d47a1;
+    letter-spacing: 1px;
 }
 
-h2 {
+.subtitle {
     text-align: center;
-    color: #0d47a1;
+    color: #1565c0;
+    margin-bottom: 30px;
 }
 
 .container {
@@ -42,90 +43,91 @@ h2 {
 .card {
     background: white;
     padding: 25px;
-    border-radius: 18px;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
 }
 
-label {
-    font-weight: bold;
-    margin-top: 10px;
-    display: block;
+.card h3 {
+    color: #0d47a1;
+    margin-bottom: 15px;
 }
 
-input, select {
+input, select, button {
     width: 100%;
-    padding: 8px;
-    border-radius: 8px;
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 10px;
     border: 1px solid #ccc;
-    margin-top: 4px;
+    font-size: 14px;
 }
 
 button {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px;
     background: #0d47a1;
     color: white;
-    font-size: 16px;
     border: none;
-    border-radius: 10px;
     cursor: pointer;
+    font-weight: 600;
+    margin-top: 20px;
 }
 
 button:disabled {
     opacity: 0.6;
-    cursor: not-allowed;
-}
-
-button:hover:not(:disabled) {
-    background: #08306b;
 }
 
 .result {
     display: none;
 }
 
-.result-box {
+.risk-low {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.risk-high {
+    color: #c62828;
+    font-weight: 600;
+}
+
+.advice {
+    margin-top: 15px;
     padding: 15px;
     border-radius: 12px;
-    margin-top: 15px;
-    text-align: center;
 }
 
-#advice {
-    margin-top: 15px;
-    background: #f5f5f5;
-    padding: 12px;
-    border-radius: 10px;
+.advice.low {
+    background: #e8f5e9;
+    border-left: 6px solid #2e7d32;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
+.advice.high {
+    background: #ffebee;
+    border-left: 6px solid #c62828;
 }
 
-th, td {
-    border: 1px solid #ccc;
-    padding: 6px;
-    text-align: center;
+.avatar {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
 }
 
-@media (max-width: 900px) {
-    .container {
-        grid-template-columns: 1fr;
-    }
+.avatar img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🫀 Hypertension Risk Prediction</h2>
+<h1>🫀 Hypertension Risk Predictor</h1>
+<p class="subtitle">AI-powered medical decision support</p>
 
 <div class="container">
 
-<!-- INPUTS -->
+<!-- FORM -->
 <div class="card">
 <h3>Patient Information</h3>
 
@@ -134,14 +136,13 @@ th, td {
     <option value="0">Female</option>
     <option value="1">Male</option>
 </select>
-
 <input id="height" type="number" placeholder="Height (cm)">
 <input id="weight" type="number" placeholder="Weight (kg)">
 <input id="ap_hi" type="number" placeholder="Systolic Pressure">
 <input id="ap_lo" type="number" placeholder="Diastolic Pressure">
 
 <select id="cholesterol">
-    <option value="1">Chol Normal</option>
+    <option value="1">Cholesterol Normal</option>
     <option value="2">Above normal</option>
     <option value="3">High</option>
 </select>
@@ -172,32 +173,24 @@ th, td {
 
 <!-- RESULTS -->
 <div class="card">
-<h3>Analysis Results</h3>
+<h3>Medical Analysis</h3>
 
 <div class="result" id="result">
 
-<div class="result-box">
-    <h3 id="diagnostic"></h3>
-    <p><strong>Hypertension probability:</strong> <span id="prob"></span>%</p>
-    <p><strong>BMI:</strong> <span id="bmi"></span></p>
+<div class="avatar">
+<img src="https://i.imgur.com/8Km9tLL.png" alt="Doctor Avatar">
+<div>
+<strong>Virtual Doctor</strong><br>
+<span id="diagnostic"></span>
+</div>
 </div>
 
+<p><strong>Risk:</strong> <span id="prob"></span>%</p>
+<p><strong>BMI:</strong> <span id="bmi"></span></p>
+
+<div id="adviceBox" class="advice"></div>
+
 <canvas id="riskChart"></canvas>
-
-<div id="advice"></div>
-
-<h4>📊 Patient History</h4>
-<table>
-<thead>
-<tr><th>Date</th><th>Risk %</th><th>BMI</th><th>Diagnosis</th></tr>
-</thead>
-<tbody id="history"></tbody>
-</table>
-
-<p style="font-size:12px;margin-top:10px">
-⚠️ Experimental tool intended for research and educational purposes only.
-</p>
-
 </div>
 </div>
 
@@ -205,38 +198,17 @@ th, td {
 
 <script>
 let chart;
-const API_URL = "https://hypertension-api-1.onrender.com/predict";
-
-function adviceText(prob, bmi, active, smoke) {
-    let tips = [];
-    if (prob > 50) tips.push("Reduce salt intake and monitor blood pressure regularly.");
-    if (bmi >= 25) tips.push("Weight reduction is recommended.");
-    if (active === 0) tips.push("Increase daily physical activity.");
-    if (smoke === 1) tips.push("Smoking cessation is strongly advised.");
-    return tips.join(" ");
-}
-
-function saveHistory(data) {
-    let hist = JSON.parse(localStorage.getItem("history") || "[]");
-    hist.unshift(data);
-    localStorage.setItem("history", JSON.stringify(hist));
-    renderHistory();
-}
-
-function renderHistory() {
-    const hist = JSON.parse(localStorage.getItem("history") || "[]");
-    document.getElementById("history").innerHTML = hist.map(h =>
-        `<tr><td>${h.date}</td><td>${h.prob}%</td><td>${h.bmi}</td><td>${h.diag}</td></tr>`
-    ).join("");
-}
+const API_URL = "https://hypertension-api-3.onrender.com/predict";
 
 async function predict() {
     const btn = document.getElementById("btn");
     btn.disabled = true;
+    btn.innerText = "Analyzing...";
 
     const payload = {
-        age:+age.value, gender:+gender.value, height:+height.value,
-        weight:+weight.value, ap_hi:+ap_hi.value, ap_lo:+ap_lo.value,
+        age:+age.value, gender:+gender.value,
+        height:+height.value, weight:+weight.value,
+        ap_hi:+ap_hi.value, ap_lo:+ap_lo.value,
         cholesterol:+cholesterol.value, gluc:+gluc.value,
         smoke:+smoke.value, alco:+alco.value, active:+active.value
     };
@@ -248,44 +220,55 @@ async function predict() {
             body:JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error("API error");
+        if (!res.ok) throw new Error();
 
         const data = await res.json();
-        const prob = Number(data.probability_percent);
+        const risk = data.probability_percent;
 
-        document.getElementById("prob").innerText = prob;
+        document.getElementById("prob").innerText = risk;
         document.getElementById("bmi").innerText = data.BMI;
         document.getElementById("diagnostic").innerText = data.diagnostic;
-        document.getElementById("advice").innerText =
-            adviceText(prob, data.BMI, payload.active, payload.smoke);
+        document.getElementById("result").style.display = "block";
 
-        document.getElementById("result").style.display="block";
+        const adviceBox = document.getElementById("adviceBox");
 
-        saveHistory({
-            date:new Date().toLocaleDateString(),
-            prob, bmi:data.BMI, diag:data.diagnostic
-        });
+        if (risk >= 50) {
+            adviceBox.className = "advice high";
+            adviceBox.innerHTML = `
+            <strong>Medical Advice:</strong>
+            <ul>
+                <li>Consult a healthcare professional</li>
+                <li>Reduce salt and alcohol intake</li>
+                <li>Increase physical activity</li>
+                <li>Monitor blood pressure regularly</li>
+            </ul>`;
+        } else {
+            adviceBox.className = "advice low";
+            adviceBox.innerHTML = `
+            <strong>Medical Advice:</strong>
+            <ul>
+                <li>Maintain a healthy lifestyle</li>
+                <li>Balanced diet & regular exercise</li>
+                <li>Routine blood pressure check-ups</li>
+            </ul>`;
+        }
 
         if(chart) chart.destroy();
         chart = new Chart(riskChart,{
             type:"doughnut",
             data:{
                 labels:["Risk","Safe"],
-                datasets:[{
-                    data:[prob,100-prob],
-                    backgroundColor:["#c62828","#81c784"]
-                }]
+                datasets:[{ data:[risk, 100-risk] }]
             }
         });
 
-    } catch (e) {
-        alert("Unable to contact the API. Please try again later.");
+    } catch {
+        alert("API is waking up. Please wait 10–15 seconds and retry.");
     } finally {
         btn.disabled = false;
+        btn.innerText = "Analyze Risk";
     }
 }
-
-renderHistory();
 </script>
 
 </body>
