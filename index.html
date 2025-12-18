@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -24,6 +24,7 @@ h1 {
     font-weight: 700;
     color: #0d47a1;
     letter-spacing: 1px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
 }
 
 .subtitle {
@@ -70,53 +71,21 @@ button {
     margin-top: 20px;
 }
 
-button:disabled {
-    opacity: 0.6;
-}
+button:disabled { opacity: 0.6; }
 
-.result {
-    display: none;
-}
+.result { display: none; }
 
-.risk-low {
-    color: #2e7d32;
-    font-weight: 600;
-}
+.risk-low { color: #2e7d32; font-weight: 600; }
+.risk-high { color: #c62828; font-weight: 600; }
 
-.risk-high {
-    color: #c62828;
-    font-weight: 600;
-}
+.advice { margin-top: 15px; padding: 15px; border-radius: 12px; }
+.advice.low { background: #e8f5e9; border-left: 6px solid #2e7d32; }
+.advice.high { background: #ffebee; border-left: 6px solid #c62828; }
 
-.advice {
-    margin-top: 15px;
-    padding: 15px;
-    border-radius: 12px;
-}
+.avatar { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.avatar img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; }
 
-.advice.low {
-    background: #e8f5e9;
-    border-left: 6px solid #2e7d32;
-}
-
-.advice.high {
-    background: #ffebee;
-    border-left: 6px solid #c62828;
-}
-
-.avatar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.avatar img {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    object-fit: cover;
-}
+.error-msg { color: #c62828; font-weight: 600; margin-top: 10px; }
 </style>
 </head>
 
@@ -168,6 +137,8 @@ button:disabled {
     <option value="1">Active</option>
 </select>
 
+<div id="error" class="error-msg"></div>
+
 <button id="btn" onclick="predict()">Analyze Risk</button>
 </div>
 
@@ -180,13 +151,13 @@ button:disabled {
 <div class="avatar">
 <img src="https://i.imgur.com/8Km9tLL.png" alt="Doctor Avatar">
 <div>
-<strong>Virtual Doctor</strong><br>
+<strong></strong><br>
 <span id="diagnostic"></span>
 </div>
 </div>
 
-<p><strong>Risk:</strong> <span id="prob"></span>%</p>
-<p><strong>BMI:</strong> <span id="bmi"></span></p>
+<p><strong>Probable risk:</strong> <span id="prob"></span>%</p>
+<p><strong>Body Mass(BMI):</strong> <span id="bmi"></span></p>
 
 <div id="adviceBox" class="advice"></div>
 
@@ -200,8 +171,24 @@ button:disabled {
 let chart;
 const API_URL = "https://hypertension-api-3.onrender.com/predict";
 
+function validateInputs() {
+    const fields = [age, height, weight, ap_hi, ap_lo];
+    for (let f of fields) {
+        if (f.value === "" || Number(f.value) < 0) return false;
+    }
+    return true;
+}
+
 async function predict() {
     const btn = document.getElementById("btn");
+    const errorBox = document.getElementById("error");
+    errorBox.innerText = "";
+
+    if (!validateInputs()) {
+        errorBox.innerText = "Please fill all numeric fields with positive numbers.";
+        return;
+    }
+
     btn.disabled = true;
     btn.innerText = "Analyzing...";
 
@@ -258,7 +245,7 @@ async function predict() {
             type:"doughnut",
             data:{
                 labels:["Risk","Safe"],
-                datasets:[{ data:[risk, 100-risk] }]
+                datasets:[{ data:[risk, 100-risk], backgroundColor:["#c62828","#2e7d32"] }]
             }
         });
 
