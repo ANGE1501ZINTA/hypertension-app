@@ -2,169 +2,691 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Hypertension Risk Predictor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hypertension Risk Predictor | ML-Powered Clinical Assessment</title>
 
-<!-- Google Font -->
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-    font-family: 'Montserrat', sans-serif;
-    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-    min-height: 100vh;
+* {
     margin: 0;
-    padding: 30px;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-h1 {
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+    color: #1e293b;
+}
+
+.header {
     text-align: center;
+    margin-bottom: 50px;
+    color: white;
+}
+
+.header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.5rem;
     font-weight: 700;
-    color: #0d47a1;
-    letter-spacing: 1px;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    margin-bottom: 12px;
+    text-shadow: 2px 2px 20px rgba(0,0,0,0.2);
 }
 
-.subtitle {
-    text-align: center;
-    color: #1565c0;
-    margin-bottom: 30px;
+.header .tagline {
+    font-size: 1.1rem;
+    opacity: 0.95;
+    font-weight: 500;
+}
+
+.header .tech-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 8px 20px;
+    border-radius: 20px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.3);
 }
 
 .container {
-    max-width: 1200px;
-    margin: auto;
+    max-width: 1400px;
+    margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
 }
 
+@media (max-width: 968px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+}
+
 .card {
     background: white;
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    border-radius: 24px;
+    padding: 35px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card h3 {
-    color: #0d47a1;
-    margin-bottom: 15px;
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 70px rgba(0,0,0,0.2);
 }
 
-input, select, button {
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.card-icon {
+    font-size: 2rem;
+}
+
+.card-header h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.form-group label .required {
+    color: #ef4444;
+    margin-left: 4px;
+}
+
+.form-group .hint {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 400;
+}
+
+input, select {
     width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
-    font-size: 14px;
+    padding: 14px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+input::placeholder {
+    color: #94a3b8;
+}
+
+.input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
 }
 
 button {
-    background: #0d47a1;
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    cursor: pointer;
+    border-radius: 12px;
+    font-size: 1.1rem;
     font-weight: 600;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: all 0.3s ease;
+    font-family: 'Space Grotesk', sans-serif;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled { 
+    opacity: 0.6; 
+    cursor: not-allowed;
+}
+
+.error-msg {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-top: 15px;
+    font-size: 0.9rem;
+    border-left: 4px solid #dc2626;
+    display: none;
+}
+
+.error-msg.show {
+    display: block;
+}
+
+.result {
+    display: none;
+}
+
+.result.show {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.patient-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 25px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+}
+
+.patient-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 5px;
+}
+
+.patient-id {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.result-header {
+    background: #f8fafc;
+    padding: 25px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    text-align: center;
+    border: 2px solid #e2e8f0;
+}
+
+.result-header h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.probability {
+    font-size: 3.5rem;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.probability.high {
+    color: #dc2626;
+}
+
+.probability.low {
+    color: #16a34a;
+}
+
+.probability-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 5px;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.metric-card {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+}
+
+.metric-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1e293b;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.advice {
+    padding: 20px;
+    border-radius: 12px;
     margin-top: 20px;
 }
 
-button:disabled { opacity: 0.6; }
+.advice.low {
+    background: #f0fdf4;
+    border: 2px solid #86efac;
+}
 
-.result { display: none; }
+.advice.high {
+    background: #fef2f2;
+    border: 2px solid #fca5a5;
+}
 
-.risk-low { color: #2e7d32; font-weight: 600; }
-.risk-high { color: #c62828; font-weight: 600; }
+.advice h5 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #1e293b;
+    font-weight: 700;
+}
 
-.advice { margin-top: 15px; padding: 15px; border-radius: 12px; }
-.advice.low { background: #e8f5e9; border-left: 6px solid #2e7d32; }
-.advice.high { background: #ffebee; border-left: 6px solid #c62828; }
+.advice ul {
+    list-style: none;
+    padding: 0;
+}
 
-.avatar { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-.avatar img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; }
+.advice ul li {
+    padding: 10px 0;
+    padding-left: 28px;
+    position: relative;
+    color: #334155;
+    line-height: 1.6;
+}
 
-.error-msg { color: #c62828; font-weight: 600; margin-top: 10px; }
+.advice ul li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.advice.low ul li::before {
+    color: #16a34a;
+}
+
+.advice.high ul li::before {
+    color: #dc2626;
+}
+
+.chart-container {
+    margin-top: 25px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.model-info {
+    background: white;
+    border-radius: 24px;
+    padding: 35px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    margin-top: 30px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.model-info h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.8rem;
+    color: #1e293b;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.info-item {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #667eea;
+}
+
+.info-item h4 {
+    color: #334155;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.info-item p {
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.info-item .value {
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 1.2rem;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.features-list {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.features-list h4 {
+    color: #334155;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.features-list ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    list-style: none;
+    padding: 0;
+}
+
+.features-list li {
+    color: #64748b;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 50px;
+    color: white;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.footer a {
+    color: white;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.disclaimer {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
 </style>
 </head>
 
 <body>
 
-<h1>🫀 Hypertension Risk Predictor</h1>
-<p class="subtitle">AI-powered medical decision support</p>
+<div class="header">
+    <h1>🫀 Hypertension Risk Predictor</h1>
+    <p class="tagline">AI-Powered Clinical Decision Support System</p>
+    <div class="tech-badge">🤖 Machine Learning Classification | 📊 Scikit-learn Pipeline | 🔬 Clinical Data Analysis</div>
+</div>
 
 <div class="container">
 
-<!-- FORM -->
+<!-- FORM CARD -->
 <div class="card">
-<h3>Patient Information</h3>
+    <div class="card-header">
+        <span class="card-icon">📋</span>
+        <h3>Patient Clinical Data</h3>
+    </div>
 
-<input id="age" type="number" placeholder="Age">
-<select id="gender">
-    <option value="0">Female</option>
-    <option value="1">Male</option>
-</select>
-<input id="height" type="number" placeholder="Height (cm)">
-<input id="weight" type="number" placeholder="Weight (kg)">
-<input id="ap_hi" type="number" placeholder="systolic blood pressure">
-<input id="ap_lo" type="number" placeholder="diastolic blood pressure">
+    <div class="form-group">
+        <label>Patient Identity</label>
+        <div class="input-group">
+            <div>
+                <input id="firstName" type="text" placeholder="First Name">
+                <div class="hint">Patient's first name</div>
+            </div>
+            <div>
+                <input id="lastName" type="text" placeholder="Last Name">
+                <div class="hint">Patient's last name</div>
+            </div>
+        </div>
+    </div>
 
-<select id="cholesterol">
-    <option value="1">Cholesterol Normal</option>
-    <option value="2">Above normal</option>
-    <option value="3">High</option>
-</select>
+    <div class="form-group">
+        <label for="age">Age <span class="required">*</span></label>
+        <input id="age" type="number" placeholder="Ex: 45" min="1" max="120">
+        <div class="hint">Patient's age in years</div>
+    </div>
 
-<select id="gluc">
-    <option value="1">Glucose Normal</option>
-    <option value="2">Above normal</option>
-    <option value="3">High</option>
-</select>
+    <div class="form-group">
+        <label for="gender">Biological Sex <span class="required">*</span></label>
+        <select id="gender">
+            <option value="0">Female</option>
+            <option value="1">Male</option>
+        </select>
+    </div>
 
-<select id="smoke">
-    <option value="0">Non-smoker</option>
-    <option value="1">Smoker</option>
-</select>
+    <div class="form-group">
+        <label>Physical Measurements <span class="required">*</span></label>
+        <div class="input-group">
+            <div>
+                <input id="height" type="number" placeholder="Height (cm)" min="50" max="250">
+                <div class="hint">In centimeters</div>
+            </div>
+            <div>
+                <input id="weight" type="number" placeholder="Weight (kg)" min="20" max="300">
+                <div class="hint">In kilograms</div>
+            </div>
+        </div>
+    </div>
 
-<select id="alco">
-    <option value="0">No alcohol</option>
-    <option value="1">Alcohol</option>
-</select>
+    <div class="form-group">
+        <label>Blood Pressure (mmHg) <span class="required">*</span></label>
+        <div class="input-group">
+            <div>
+                <input id="ap_hi" type="number" placeholder="Systolic" min="70" max="250">
+                <div class="hint">Upper number</div>
+            </div>
+            <div>
+                <input id="ap_lo" type="number" placeholder="Diastolic" min="40" max="150">
+                <div class="hint">Lower number</div>
+            </div>
+        </div>
+    </div>
 
-<select id="active">
-    <option value="0">Inactive</option>
-    <option value="1">Active</option>
-</select>
+    <div class="form-group">
+        <label for="cholesterol">Cholesterol Level <span class="required">*</span></label>
+        <select id="cholesterol">
+            <option value="1">Normal (within healthy range)</option>
+            <option value="2">Above Normal (slightly elevated)</option>
+            <option value="3">High (requires attention)</option>
+        </select>
+    </div>
 
-<div id="error" class="error-msg"></div>
+    <div class="form-group">
+        <label for="gluc">Glucose Level <span class="required">*</span></label>
+        <select id="gluc">
+            <option value="1">Normal (healthy range)</option>
+            <option value="2">Above Normal (pre-diabetic)</option>
+            <option value="3">High (diabetic range)</option>
+        </select>
+    </div>
 
-<button id="btn" onclick="predict()">Analyze Risk</button>
+    <div class="form-group">
+        <label for="smoke">Smoking Status <span class="required">*</span></label>
+        <select id="smoke">
+            <option value="0">Non-Smoker</option>
+            <option value="1">Active Smoker</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="alco">Alcohol Consumption <span class="required">*</span></label>
+        <select id="alco">
+            <option value="0">No Regular Alcohol Consumption</option>
+            <option value="1">Regular Alcohol Consumption</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="active">Physical Activity Level <span class="required">*</span></label>
+        <select id="active">
+            <option value="0">Inactive / Sedentary Lifestyle</option>
+            <option value="1">Active / Regular Exercise</option>
+        </select>
+    </div>
+
+    <div id="error" class="error-msg"></div>
+
+    <button id="btn" onclick="predict()">🔍 Analyze Hypertension Risk</button>
 </div>
 
-<!-- RESULTS -->
+<!-- RESULTS CARD -->
 <div class="card">
-<h3>Medical Analysis</h3>
+    <div class="card-header">
+        <span class="card-icon">📊</span>
+        <h3>Clinical Analysis Results</h3>
+    </div>
 
-<div class="result" id="result">
+    <div class="result" id="result">
+        <div class="patient-header" id="patientHeader" style="display:none;">
+            <div class="patient-name" id="patientName"></div>
+            <div class="patient-id" id="patientId"></div>
+        </div>
 
-<div class="avatar">
-<img src="https://i.imgur.com/8Km9tLL.png" alt="Doctor Avatar">
-<div>
-<strong></strong><br>
-<span id="diagnostic"></span>
+        <div class="result-header">
+            <h4>Hypertension Risk Assessment</h4>
+            <div class="probability" id="prob">--</div>
+            <div class="probability-label">Predicted Risk Probability</div>
+        </div>
+
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Body Mass Index</div>
+                <div class="metric-value" id="bmi">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Clinical Status</div>
+                <div class="metric-value" style="font-size: 1.2rem;" id="diagnostic">--</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="riskChart"></canvas>
+        </div>
+
+        <div id="adviceBox" class="advice"></div>
+    </div>
 </div>
+
 </div>
 
-<p><strong>Probable risk:</strong> <span id="prob"></span>%</p>
-<p><strong>Body Mass(BMI):</strong> <span id="bmi"></span></p>
+<!-- MODEL INFORMATION -->
+<div class="model-info">
+    <h3>🤖 About the Prediction Model</h3>
+    
+    <div class="info-grid">
+        <div class="info-item">
+            <h4>Model Architecture</h4>
+            <p class="value">Classification Model</p>
+            <p>Supervised machine learning with probability threshold optimization (≥65% for high risk)</p>
+        </div>
+        
+        <div class="info-item">
+            <h4>Feature Engineering</h4>
+            <p class="value">12 Clinical Features</p>
+            <p>Includes computed BMI and standardized scaling for numerical features</p>
+        </div>
+        
+        <div class="info-item">
+            <h4>Data Processing</h4>
+            <p class="value">StandardScaler Pipeline</p>
+            <p>Normalized features: age, height, weight, blood pressure, BMI</p>
+        </div>
+        
+        <div class="info-item">
+            <h4>API Backend</h4>
+            <p class="value">FastAPI + Render</p>
+            <p>RESTful API with CORS support, deployed on cloud infrastructure</p>
+        </div>
+    </div>
 
-<div id="adviceBox" class="advice"></div>
+    <div class="features-list">
+        <h4>📈 Model Input Features</h4>
+        <ul>
+            <li>👤 Age (years)</li>
+            <li>⚧ Gender (biological sex)</li>
+            <li>📏 Height (cm)</li>
+            <li>⚖️ Weight (kg)</li>
+            <li>💓 Systolic BP (ap_hi)</li>
+            <li>💓 Diastolic BP (ap_lo)</li>
+            <li>🧪 Cholesterol level</li>
+            <li>🍬 Glucose level</li>
+            <li>🚬 Smoking status</li>
+            <li>🍺 Alcohol consumption</li>
+            <li>🏃 Physical activity</li>
+            <li>📊 BMI (computed)</li>
+        </ul>
+    </div>
 
-<canvas id="riskChart"></canvas>
+    <div class="disclaimer">
+        <strong>⚠️ Medical Disclaimer:</strong> This tool is designed for educational and research purposes. It uses machine learning to estimate hypertension risk based on clinical parameters but should not replace professional medical diagnosis. Always consult qualified healthcare professionals for medical decisions.
+    </div>
 </div>
-</div>
 
+<div class="footer">
+    <p><strong>Developed with Machine Learning & Data Science</strong></p>
+    <p>Tech Stack: Python • Scikit-learn • FastAPI • Joblib • NumPy • Render Cloud</p>
+    <p style="margin-top: 15px;">💼 This project demonstrates end-to-end ML deployment: data preprocessing, model training, API development, and web integration</p>
 </div>
 
 <script>
@@ -172,88 +694,178 @@ let chart;
 const API_URL = "https://hypertension-api-3.onrender.com/predict";
 
 function validateInputs() {
-    const fields = [age, height, weight, ap_hi, ap_lo];
+    const fields = [
+        {el: age, min: 1, max: 120, name: "Age"},
+        {el: height, min: 50, max: 250, name: "Height"},
+        {el: weight, min: 20, max: 300, name: "Weight"},
+        {el: ap_hi, min: 70, max: 250, name: "Systolic BP"},
+        {el: ap_lo, min: 40, max: 150, name: "Diastolic BP"}
+    ];
+    
     for (let f of fields) {
-        if (f.value === "" || Number(f.value) < 0) return false;
+        const val = Number(f.el.value);
+        if (f.el.value === "" || isNaN(val)) {
+            return `${f.name} is required`;
+        }
+        if (val < f.min || val > f.max) {
+            return `${f.name} must be between ${f.min} and ${f.max}`;
+        }
     }
-    return true;
+    
+    if (Number(ap_hi.value) <= Number(ap_lo.value)) {
+        return "Systolic BP must be higher than Diastolic BP";
+    }
+    
+    return null;
+}
+
+function generatePatientId() {
+    const now = new Date();
+    const timestamp = now.getTime().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `PT-${timestamp}${random}`;
 }
 
 async function predict() {
     const btn = document.getElementById("btn");
     const errorBox = document.getElementById("error");
+    
+    errorBox.classList.remove("show");
     errorBox.innerText = "";
 
-    if (!validateInputs()) {
-        errorBox.innerText = "Please fill all numeric fields with positive numbers.";
+    const validationError = validateInputs();
+    if (validationError) {
+        errorBox.innerText = validationError;
+        errorBox.classList.add("show");
         return;
     }
 
     btn.disabled = true;
-    btn.innerText = "Analyzing...";
+    btn.innerHTML = "⏳ Analyzing data...";
 
     const payload = {
-        age:+age.value, gender:+gender.value,
-        height:+height.value, weight:+weight.value,
-        ap_hi:+ap_hi.value, ap_lo:+ap_lo.value,
-        cholesterol:+cholesterol.value, gluc:+gluc.value,
-        smoke:+smoke.value, alco:+alco.value, active:+active.value
+        age: +age.value, 
+        gender: +gender.value,
+        height: +height.value, 
+        weight: +weight.value,
+        ap_hi: +ap_hi.value, 
+        ap_lo: +ap_lo.value,
+        cholesterol: +cholesterol.value, 
+        gluc: +gluc.value,
+        smoke: +smoke.value, 
+        alco: +alco.value, 
+        active: +active.value
     };
 
     try {
         const res = await fetch(API_URL, {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify(payload)
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error("API request failed");
 
         const data = await res.json();
         const risk = data.probability_percent;
 
-        document.getElementById("prob").innerText = risk;
+        // Update patient header if name provided
+        const firstName = document.getElementById("firstName").value.trim();
+        const lastName = document.getElementById("lastName").value.trim();
+        
+        if (firstName || lastName) {
+            const fullName = `${firstName} ${lastName}`.trim() || "Anonymous Patient";
+            document.getElementById("patientName").innerText = fullName;
+            document.getElementById("patientId").innerText = `Patient ID: ${generatePatientId()} | Analysis Date: ${new Date().toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'})}`;
+            document.getElementById("patientHeader").style.display = "block";
+        } else {
+            document.getElementById("patientHeader").style.display = "none";
+        }
+
+        const probElement = document.getElementById("prob");
+        probElement.innerText = risk + "%";
+        probElement.className = risk >= 50 ? "probability high" : "probability low";
+        
         document.getElementById("bmi").innerText = data.BMI;
         document.getElementById("diagnostic").innerText = data.diagnostic;
-        document.getElementById("result").style.display = "block";
+        
+        const resultDiv = document.getElementById("result");
+        resultDiv.classList.add("show");
 
         const adviceBox = document.getElementById("adviceBox");
 
         if (risk >= 50) {
             adviceBox.className = "advice high";
             adviceBox.innerHTML = `
-            <strong>Medical Advice:</strong>
+            <h5>⚠️ High Risk - Recommended Actions</h5>
             <ul>
-                <li>Consult a healthcare professional</li>
-                <li>Reduce salt and alcohol intake</li>
-                <li>Increase physical activity</li>
-                <li>Monitor blood pressure regularly</li>
+                <li>Consult a healthcare professional immediately for comprehensive cardiovascular evaluation</li>
+                <li>Monitor blood pressure daily and maintain a detailed medical log</li>
+                <li>Reduce sodium intake to less than 2,300mg per day (1,500mg if advised by physician)</li>
+                <li>Limit or eliminate alcohol consumption (affects blood pressure regulation)</li>
+                <li>Begin regular cardiovascular exercise program (with medical clearance)</li>
+                <li>Consider stress management techniques: meditation, yoga, deep breathing exercises</li>
+                <li>Review all current medications with your physician for potential interactions</li>
+                <li>Schedule follow-up appointments for continuous monitoring</li>
             </ul>`;
         } else {
             adviceBox.className = "advice low";
             adviceBox.innerHTML = `
-            <strong>Medical Advice:</strong>
+            <h5>✅ Low Risk - Preventive Maintenance</h5>
             <ul>
-                <li>Maintain a healthy lifestyle</li>
-                <li>Balanced diet & regular exercise</li>
-                <li>Routine blood pressure check-ups</li>
+                <li>Maintain current healthy lifestyle habits and routines</li>
+                <li>Continue balanced diet rich in fruits, vegetables, whole grains, and lean proteins</li>
+                <li>Engage in at least 150 minutes of moderate aerobic exercise per week</li>
+                <li>Schedule routine blood pressure check-ups annually or as recommended</li>
+                <li>Practice stress management through regular relaxation and mindfulness</li>
+                <li>Maintain healthy weight and BMI within recommended ranges</li>
+                <li>Stay hydrated and limit processed foods high in sodium</li>
             </ul>`;
         }
 
         if(chart) chart.destroy();
-        chart = new Chart(riskChart,{
-            type:"doughnut",
-            data:{
-                labels:["Risk","Safe"],
-                datasets:[{ data:[risk, 100-risk], backgroundColor:["#c62828","#2e7d32"] }]
+        
+        chart = new Chart(riskChart, {
+            type: "doughnut",
+            data: {
+                labels: ["Hypertension Risk", "Healthy Range"],
+                datasets: [{
+                    data: [risk, 100 - risk],
+                    backgroundColor: risk >= 50 ? ["#dc2626", "#16a34a"] : ["#16a34a", "#e2e8f0"],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14,
+                                family: "'Inter', sans-serif"
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed + '%';
+                            }
+                        }
+                    }
+                }
             }
         });
 
-    } catch {
-        alert("API is waking up. Please wait 10–15 seconds and retry.");
+    } catch (error) {
+        errorBox.innerText = "⚠️ API connection error. The service may be starting up (cold start on Render). Please wait 10-15 seconds and try again.";
+        errorBox.classList.add("show");
     } finally {
         btn.disabled = false;
-        btn.innerText = "Analyze Risk";
+        btn.innerHTML = "🔍 Analyze Hypertension Risk";
     }
 }
 </script>
